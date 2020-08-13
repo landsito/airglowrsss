@@ -1666,7 +1666,7 @@ def find_unprocessed_days( years = range(2005,2020) , doys = range(1,367) ):
                         
 
 
-def load_level0(instr_name, year, doy):
+def load_level0(instr_name, year, doy,npzfn=None):
     '''
     Return the contents of the npz file specified by the arguments.
     Access contents with, e.g.,
@@ -1675,16 +1675,17 @@ def load_level0(instr_name, year, doy):
         output['site']
     '''
     # Load FPI_Results
-    fpi_results_dir =  '/rdata/airglow/fpi/results/'
-    process_dn = datetime.datetime(year,1,1) + datetime.timedelta(days = doy-1)
-    site_name = fpiinfo.get_site_of(instr_name, process_dn)
-    # If instrument not at a site at this time, return IOError, file not found, for consistency
-    # with the error that occurs if the instrument didn't take data on that night
-    if site_name is None:
-        raise IOError('File Not Found for %s_%s_%03i' % (instr_name, year, doy))
-    datestr = process_dn.strftime('%Y%m%d')
-    instrsitedate = instr_name + '_' + site_name + '_' + datestr
-    npzfn = fpi_results_dir + instrsitedate + '.npz'
+    if npzfn is None:
+        fpi_results_dir =  '/rdata/airglow/fpi/results/'
+        process_dn = datetime.datetime(year,1,1) + datetime.timedelta(days = doy-1)
+        site_name = fpiinfo.get_site_of(instr_name, process_dn)
+        # If instrument not at a site at this time, return IOError, file not found, for consistency
+        # with the error that occurs if the instrument didn't take data on that night
+        if site_name is None:
+            raise IOError('File Not Found for %s_%s_%03i' % (instr_name, year, doy))
+        datestr = process_dn.strftime('%Y%m%d')
+        instrsitedate = instr_name + '_' + site_name + '_' + datestr
+        npzfn = fpi_results_dir + instrsitedate + '.npz'
     npzfile = np.load(npzfn)
     
     # Rearrange so it actually looks like a dictionary
