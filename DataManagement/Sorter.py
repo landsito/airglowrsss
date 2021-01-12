@@ -1,4 +1,4 @@
-#!/usr/bin/python
+=#!/usr/bin/python
 '''
 Run program to unzip and sort data onto airglow's remote2 server
 
@@ -120,7 +120,7 @@ def sortinghat(dir_data,f):
         else:
             msg = "%s%s down at %s!\nInternet & Sortinghat are working, this is an instrument/PC issue." %(code[instr],inum,site)
         subject = "!!! No data collected on %02s-%02s-%02s" %(mon,day,year)
-        Emailer.emailerror(emails,subject,msg)
+        #Emailer.emailerror(emails,subject,msg)
         # Move info file to tracking folder
         os.system('mv ' + f + ' ./tracking')
     ## Case 2 - all parts sent over in rx
@@ -211,11 +211,13 @@ def sorter(san,pgm):
         6/11/15 -- Modified for site-by-site multicore
     '''
     
+    # The location of programs
+    dir_rx_local = '/home/tx/rx/'
     # The location of programs (needed since running in crontab)
-    dir_local = '/rdata/airglow/'
+    dir_local = '/home/airglow/rdata/airglow/'
     #dir_script = '/usr/local/share/airglowrsss/Python/Programs/'
     #python = '/usr/local/python/'
-    dir_share = '/rdata/airglow/share/'
+    dir_share = '/home/airglow/rdata/airglow/share/'
     
     # Close Program if already running (just in case...)
     pid = str(os.getpid())
@@ -243,12 +245,13 @@ def sorter(san,pgm):
     # TRY YOUR HARDEST
     try:
         # Get Data in RX folder
-        os.chdir(dir_local+'rx/')
+        #os.chdir(dir_local+'rx/')
+        os.chdir(dir_rx_local)
         #os.system('chmod 774 *') No longer have permissions, tx sends as 774.
         # Get info files for non-standard (Zip->Send->Sort) data
         rxfiles = ["fpi04_kaf","cas01_hka"]
         for x in rxfiles:
-            for files in glob(x + '*'):
+            for files in glob( x + '*'):
                 makeinfo(files)
         # Go through txt files to Sort data
         for i in ids:
@@ -325,6 +328,24 @@ def sorter(san,pgm):
                         os.system('rm -f ' + name + '*')
                         print "!!! Success Sorting"
                         
+                        #########temporal
+                        imgpath=[r for r in result if "img" in r][0].split("/")[0]
+                        if not (imgpath[:4] in ["2018","2019","2020","2021"]):
+                            src=dir_data+imgpath
+                            dst=dir_data+imgpath[-4:]+imgpath[-6:-4]+imgpath[-8:-6]
+                            os.system("mv %s %s"%(src,dst))
+                            news=[]
+                            for r in result:
+                                newr=imgpath[-4:]+imgpath[-6:-4]+imgpath[-8:-6]+r[8:]
+                                news.append(newr)
+                            result=news
+                        ########
+                        
+                        # Remove files from rx
+                        os.system('rm -f ' + name + '*')
+                        print "!!! Success Sorting"
+                        continue
+                       ############################•
                     ### Part 2: Processing Data
                         print "!!! Begin Processing..."
                         # Get correct doy from files
